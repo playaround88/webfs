@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="GBK"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+			http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<array>
+				<value>classpath:db.properties</value>
+			</array>
+		</property>
+	</bean>
+	<!-- 声明驱动 -->
+	<context:annotation-config />
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<!-- 引入数据源 -->
+	<!-- 
+	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean"  lazy-init="true">
+		<property name="jndiName" value="${jndi.name}" />
+	</bean>
+	 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<!-- 链接设置 -->
+		<property name="driverClass" value="${db_driver}" />
+		<property name="jdbcUrl" value="${db_url}" />
+		<property name="user" value="${db_user}" />
+		<property name="password" value="${db_password}" />
+		<!-- 数据源参数 -->
+		<property name="initialPoolSize" value="${c3p0_initialPoolSize}" />
+		<property name="maxPoolSize" value="${c3p0_maxPoolSize}" />
+		<property name="minPoolSize" value="${c3p0_minPoolSize}" />
+		<property name="maxIdleTime" value="${c3p0_maxIdleTime}" />
+		<!--当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。Default: 3 -->
+		<property name="acquireIncrement" value="${c3p0_acquireIncrement}" />
+		<!--每60秒检查所有连接池中的空闲连接。Default: 0 -->
+		<property name="idleConnectionTestPeriod" value="${c3p0_idleConnectionTestPeriod}" />
+		<!--如果设为true那么在取得连接的同时将校验连接的有效性。Default: false -->
+		<property name="testConnectionOnCheckin" value="${c3p0_testConnectionOnCheckin}" />
+		<property name="testConnectionOnCheckout" value="${c3p0_testConnectionOnCheckout}" />
+		<property name="preferredTestQuery" value="${c3p0_preferredTestQuery}" />
+		<property name="checkoutTimeout" value="${c3p0_checkoutTimeout}" />
+	</bean>
+	<!-- mybatis配置 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation" value="classpath:mybatis-conf.xml" />
+		<property name="mapperLocations" value="classpath*:/mapper/${db_type}/**/*.xml" />
+	</bean>
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate"	scope="prototype">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+	<!-- 事务配置 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- 以下bean根据具体项目情况配置 -->
+	<bean id="fileMetaService" class="com.ai.webfs.meta.db.FileMetaServiceImpl">
+		<property name="sqlSession" ref="sqlSession" />
+	</bean>
+	<bean id="fileStoreProvider" class="com.ai.webfs.store.fs.FsProvider">
+	</bean>
+</beans>

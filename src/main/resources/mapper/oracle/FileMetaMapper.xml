@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="FileMeta">
+	<sql id="columns">ORI_NAME,SAVE_NAME,FSIZE,FILE_URL,DEL_URL,DEL_TYPE,CATALOG</sql>
+	<resultMap id="fileMetaMap" type="com.ai.webfs.meta.FileMeta">
+		<result column="ID" property="id" javaType="long" jdbcType="BIGINT"/>
+		<result column="ORI_NAME" property="name" javaType="string" jdbcType="VARCHAR"/>
+		<result column="SAVE_NAME" property="saveName" javaType="string" jdbcType="VARCHAR"/>
+		<result column="FSIZE" property="size" javaType="long" jdbcType="BIGINT"/>
+		<result column="FILE_URL" property="url" javaType="string" jdbcType="VARCHAR"/>
+		<result column="DEL_URL" property="deleteUrl" javaType="string" jdbcType="VARCHAR"/>
+		<result column="DEL_TYPE" property="deleteType" javaType="string" jdbcType="VARCHAR"/>
+		<result column="CATALOG" property="catalog" javaType="string" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<insert id="insertFileMeta"   parameterType="com.ai.webfs.meta.FileMeta">
+	<selectKey keyProperty="id" resultType="long" order="BEFORE">
+			select SEQ_FILEMETA_ID.nextval a from dual
+		</selectKey>
+		insert into file_meta(id,<include refid="columns" />)
+			values(#{id},#{name},#{saveName},#{size},#{url},#{deleteUrl},#{deleteType},#{catalog})
+	</insert>
+	<delete id="delById" parameterType="long">
+		delete from file_meta where id=#{id}
+	</delete>
+	
+	<select id="selectById" parameterType="long" resultMap="fileMetaMap">
+		select id,<include refid="columns" /> from file_meta where id=#{id}
+	</select>
+	
+</mapper>
